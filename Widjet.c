@@ -161,21 +161,33 @@ return 0;
 
 //load config
 int LoadConfig(config *cfg){
-    cfg->FullScreen = 0;
-    cfg->resx = 768;
-    cfg->resy = 384;
-
-    FILE *fichier = fopen("Config.ini", "r");
-    if (fichier) {
-        char line[256];
-        int t = 0;
-        while (fgets(line, sizeof(line), fichier) && t < 3) {
-            if (t == 0) cfg->FullScreen = atoi(line);
-            else if (t == 1) cfg->resx = atoi(line);
-            else if (t == 2) cfg->resy = atoi(line);
-            t++;
-        }
-        fclose(fichier);
-    }
-    return 0;
+int t=0;
+char suite[255]="";
+char c[2]="";
+if (FichierPresent("Config.ini")) {
+FILE *fichier;
+fichier = fopen("Config.ini" , "r");
+//nombre d'élément de configuration
+for(t=0;t<11;t++){
+while(c[0]!=EOF) {
+c[0] = fgetc(fichier);
+if (c[0]=='\n') {break;}
+if (c[0]=='0'||c[0]=='1'||c[0]=='2'||c[0]=='3'||c[0]=='4'||c[0]=='5'||c[0]=='6'||c[0]=='7'||c[0]=='8'||c[0]=='9') {
+strcat(suite,&c[0]);}
 }
+if (t==0) {cfg->FullScreen=atoi(suite);}
+if (t==1) {cfg->resx=atoi(suite);}
+if (t==2) {cfg->resy=atoi(suite);}
+
+strcpy(suite,"");
+}
+fclose(fichier);
+}else{
+cfg->FullScreen=0;
+cfg->resx=768;
+cfg->resy=384;
+
+}
+return 0;
+}
+

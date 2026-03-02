@@ -316,11 +316,11 @@ uint32_t delay1=0,delay2=0,delay3=0;
 
 SDL_Init(SDL_INIT_EVERYTHING);
 SDL_JoystickEventState(SDL_DISABLE);
-Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, MIX_DEFAULT_CHANNELS,1024) ; 
+Mix_OpenAudio(44100, AUDIO_S16SYS, 2, 4096); 
 Mix_AllocateChannels(7);
 Mix_Volume(1, MIX_MAX_VOLUME);
 Mix_VolumeMusic(MIX_MAX_VOLUME/3);
-Mix_Music *music=Mix_LoadMUS("SND/Eternam2.wav");
+Mix_Music *music=Mix_LoadMUS("SND/Eternam2.ogg");
 Mix_Chunk *DROP;
 Mix_Chunk *ROTATE;
 Mix_Chunk *MOVE;
@@ -335,7 +335,7 @@ LINE = Mix_LoadWAV("SND/LINE.wav");
 START = Mix_LoadWAV("SND/START.wav");
 NEXT_LEVEL = Mix_LoadWAV("SND/NEXT_LEVEL.wav");
 END = Mix_LoadWAV("SND/END.wav");
-Mix_VolumeChunk(DROP, MIX_MAX_VOLUME/3);
+Mix_VolumeChunk(DROP, (MIX_MAX_VOLUME/3));
 Mix_VolumeChunk(ROTATE, (MIX_MAX_VOLUME/6));
 Mix_VolumeChunk(MOVE, (MIX_MAX_VOLUME/3));
 Mix_VolumeChunk(LINE, MIX_MAX_VOLUME);
@@ -380,6 +380,23 @@ Convert_Nb_of_line_TTRIS();
 while((!widjet.Event.key[SDLK_ESCAPE]) && (!widjet.Event.quit)){
 UpdateEvents(&widjet.Event);
 JoystickUpdateEvents(&Joyst,&widjet.Event); //récupération des evenement
+// Obsluga Alt + Enter
+if (widjet.Event.key[SDLK_RETURN] && (SDL_GetModState() & KMOD_ALT)) {
+    CFG.FullScreen = !CFG.FullScreen;
+    uint32_t FLAG = SDL_HWSURFACE;
+    if (CFG.FullScreen == 1) {
+        FLAG |= SDL_FULLSCREEN;
+    }
+    
+    widjet.render = SDL_SetVideoMode(CFG.resx, CFG.resy, 8, FLAG);
+    
+    if (widjet.render == NULL) {
+        fprintf(stderr, "Mode switching error: %s\n", SDL_GetError());
+        exit(1); 
+    }
+
+    widjet.Event.key[SDLK_RETURN] = 0; 
+}
 PIECEs_TTRIS=PSEUDO_RND_TTRIS();
 if ((widjet.Event.key[SDLK_LCTRL])||(widjet.Event.JoyButton0)) {reset_Score_TTRIS();break;}
 delay(33);
@@ -398,6 +415,23 @@ xx_TTRIS=55;yy_TTRIS=5;
 while((!widjet.Event.key[SDLK_ESCAPE]) && (!widjet.Event.quit)){
 	UpdateEvents(&widjet.Event);
 JoystickUpdateEvents(&Joyst,&widjet.Event);
+// Obsluga Alt + Enter
+if (widjet.Event.key[SDLK_RETURN] && (SDL_GetModState() & KMOD_ALT)) {
+    CFG.FullScreen = !CFG.FullScreen;
+    uint32_t FLAG = SDL_HWSURFACE;
+    if (CFG.FullScreen == 1) {
+        FLAG |= SDL_FULLSCREEN;
+    }
+    
+    widjet.render = SDL_SetVideoMode(CFG.resx, CFG.resy, 8, FLAG);
+    
+    if (widjet.render == NULL) {
+        fprintf(stderr, "Mode switching error: %s\n", SDL_GetError());
+        exit(1); 
+    }
+
+    widjet.Event.key[SDLK_RETURN] = 0; 
+}
 if (OU_SUIS_JE_X_ENGAGED_TTRIS==0) {
 if  (SPEED_x_trig_TTRIS==0){
 if ((TINYJOYPAD_RIGHT)||(widjet.Event.JoyHatR)) {
@@ -509,9 +543,14 @@ Mix_FreeChunk(NEXT_LEVEL);
 NEXT_LEVEL=NULL;
 Mix_FreeChunk(END);
 END=NULL;
+Mix_HaltMusic();
 Mix_FreeMusic(music);
 music=NULL;
-SDL_FreeSurface(widjet.render);
+Mix_CloseAudio();
+if (Joyst != NULL) {
+    SDL_JoystickClose(Joyst);
+}
+//SDL_FreeSurface(widjet.render);
 WidjetFree(&widjet);
 SDL_Quit();
 return 0;
@@ -549,17 +588,19 @@ uint8_t Dividery=CFG->resy/64;
 	SDL_Rect rec;
 rec.w=DividerX+SQ;
 rec.h=Dividery+SQ;
+uint32_t color_field = SDL_MapRGB(ren->format, 200, 230, 255);
+uint32_t color_sky = SDL_MapRGB(ren->format, 230, 230, 255);
 for(yy=0;yy<64;yy++){
 for(xx=0;xx<128;xx++){
 rec.x=(xx*DividerX);
 rec.y=(yy*Dividery);
 if (((xx>43)&&(xx<84))) {
-	COL_MAP=SDL_MapRGB(ren->format,200,230,255);
+	COL_MAP=color_field;
 rec.x=(xx*DividerX)+rand()%2;
 rec.y=(yy*Dividery)+rand()%2;
 	}else{
 		
-	if (yy<19){	COL_MAP=SDL_MapRGB(ren->format,230,230,255);}else{
+	if (yy<19){	COL_MAP=color_sky;}else{
 COL_MAP=SDL_MapRGB(ren->format,195-yy,195-yy,255-(yy-12));
 		}
 		}
